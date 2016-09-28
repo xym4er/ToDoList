@@ -6,9 +6,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.AttributeSet;
 import android.view.View;
 
-/**
- * Created by y.chornyi on 27.09.2016.
- */
 
 public class ScrollChildSwipeRefreshLayout extends SwipeRefreshLayout {
     private View mScrollUpChild;
