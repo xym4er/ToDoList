@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.architecture.blueprints.todoapp.custom.action;
+package com.chornyiya.todolist.custom.action;
 
 import org.hamcrest.Matcher;
 

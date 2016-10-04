@@ -47,9 +47,9 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.ListView;
 
-import com.example.android.architecture.blueprints.todoapp.Injection;
-import com.example.android.architecture.blueprints.todoapp.R;
-import com.example.android.architecture.blueprints.todoapp.TestUtils;
+import com.chornyiya.todolist.Injection;
+import com.chornyiya.todolist.R;
+import com.chornyiya.todolist.TestUtils;
 import com.chornyiya.todolist.data.source.TasksDataSource;
 
 import org.hamcrest.Description;

@@ -22,10 +22,10 @@ import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
 
-import com.example.android.architecture.blueprints.todoapp.R;
-import com.example.android.architecture.blueprints.todoapp.TestUtils;
+import com.chornyiya.todolist.R;
+import com.chornyiya.todolist.TestUtils;
 import com.chornyiya.todolist.data.FakeTasksRemoteDataSource;
-import com.example.android.architecture.blueprints.todoapp.data.Task;
+import com.chornyiya.todolist.data.Task;
 import com.chornyiya.todolist.data.source.TasksRepository;
 
 import org.junit.Rule;
