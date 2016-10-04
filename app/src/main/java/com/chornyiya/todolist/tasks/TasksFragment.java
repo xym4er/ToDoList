@@ -23,7 +23,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.chornyiya.todolist.R;
+import com.chornyiya.todolist.addedittask.AddEditTaskActivity;
 import com.chornyiya.todolist.data.Task;
+import com.chornyiya.todolist.taskdetail.TaskDetailActivity;
 
 import java.util.ArrayList;
 import java.util.List;
