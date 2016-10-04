@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.chornyiya.todolist.R;
+import com.chornyiya.todolist.util.ActivityUtils;
 import com.chornyiya.todolist.util.EspressoIdlingResource;
 
 public class TasksActivity extends AppCompatActivity {
