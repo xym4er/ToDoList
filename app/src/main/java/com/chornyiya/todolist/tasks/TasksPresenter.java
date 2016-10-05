@@ -7,7 +7,6 @@ import com.chornyiya.todolist.addedittask.AddEditTaskActivity;
 import com.chornyiya.todolist.data.Task;
 import com.chornyiya.todolist.data.source.TasksDataSource;
 import com.chornyiya.todolist.data.source.TasksRepository;
-import com.chornyiya.todolist.util.EspressoIdlingResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,21 +57,10 @@ public class TasksPresenter implements TasksContract.Presenter {
             mTasksRepository.refreshTasks();
         }
 
-        // The network request might be handled in a different thread so make sure Espresso knows
-        // that the app is busy until the response is handled.
-        EspressoIdlingResource.increment(); // App is busy until further notice
-
         mTasksRepository.getTasks(new TasksDataSource.LoadTasksCallback() {
             @Override
             public void onTasksLoaded(List<Task> tasks) {
                 List<Task> tasksToShow = new ArrayList<Task>();
-
-                // This callback may be called twice, once for the cache and once for loading
-                // the data from the server API, so we check before decrementing, otherwise
-                // it throws "Counter has been corrupted!" exception.
-                if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
-                    EspressoIdlingResource.decrement(); // Set app as idle.
-                }
 
                 // We filter the tasks based on the requestType
                 for (Task task : tasks) {

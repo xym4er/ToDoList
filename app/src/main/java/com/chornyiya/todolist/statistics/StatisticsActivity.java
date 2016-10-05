@@ -10,8 +10,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-import com.chornyiya.todolist.Injection;
 import com.chornyiya.todolist.R;
+import com.chornyiya.todolist.data.source.TasksRepository;
 import com.chornyiya.todolist.tasks.TasksActivity;
 import com.chornyiya.todolist.util.ActivityUtils;
 
@@ -54,7 +54,7 @@ public class StatisticsActivity extends AppCompatActivity {
         }
 
         new StatisticsPresenter(
-                Injection.provideTasksRepository(getApplicationContext()), statisticsFragment);
+                TasksRepository.getInstance(getApplicationContext()), statisticsFragment);
     }
 
     @Override

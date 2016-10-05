@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import com.chornyiya.todolist.data.Task;
 import com.chornyiya.todolist.data.source.TasksDataSource;
 import com.chornyiya.todolist.data.source.TasksRepository;
-import com.chornyiya.todolist.util.EspressoIdlingResource;
 
 import java.util.List;
 
@@ -36,22 +35,11 @@ public class StatisticsPresenter implements StatisticsContract.Presenter {
 
     private void loadStatistics() {
         mStatisticsView.setProgressIndicator(true);
-
-        // The network request might be handled in a different thread so make sure Espresso knows
-        // that the app is busy until the response is handled.
-        EspressoIdlingResource.increment(); // App is busy until further notice
         mTasksRepository.getTasks(new TasksDataSource.LoadTasksCallback() {
             @Override
             public void onTasksLoaded(List<Task> tasks) {
                 int activeTasks = 0;
                 int completedTasks = 0;
-
-                // This callback may be called twice, once for the cache and once for loading
-                // the data from the server API, so we check before decrementing, otherwise
-                // it throws "Counter has been corrupted!" exception.
-                if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
-                    EspressoIdlingResource.decrement(); // Set app as idle.
-                }
 
                 // We calculate number of active and completed tasks
                 for (Task task : tasks) {

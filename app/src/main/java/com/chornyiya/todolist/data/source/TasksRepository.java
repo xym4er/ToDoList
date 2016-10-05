@@ -1,8 +1,11 @@
 package com.chornyiya.todolist.data.source;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.chornyiya.todolist.data.Task;
+import com.chornyiya.todolist.data.source.local.TasksLocalDataSource;
+import com.chornyiya.todolist.data.source.remote.TasksRemoteDataSource;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,10 +36,9 @@ public class TasksRepository implements TasksDataSource {
         mTasksLocalDataSource = checkNotNull(tasksLocalDataSource);
     }
 
-    public static TasksRepository getInstance(TasksDataSource tasksRemoteDataSource,
-                                              TasksDataSource tasksLocalDataSource) {
+    public static TasksRepository getInstance(Context context) {
         if (INSTANCE == null) {
-            INSTANCE = new TasksRepository(tasksRemoteDataSource, tasksLocalDataSource);
+            INSTANCE = new TasksRepository(TasksRemoteDataSource.getInstance(), TasksLocalDataSource.getInstance(context));
         }
         return INSTANCE;
     }

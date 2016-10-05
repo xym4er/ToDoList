@@ -1,16 +1,13 @@
 package com.chornyiya.todolist.addedittask;
 
 import android.os.Bundle;
-import android.support.annotation.VisibleForTesting;
-import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import com.chornyiya.todolist.Injection;
 import com.chornyiya.todolist.R;
+import com.chornyiya.todolist.data.source.TasksRepository;
 import com.chornyiya.todolist.util.ActivityUtils;
-import com.chornyiya.todolist.util.EspressoIdlingResource;
 
 /**
  * Created by y.chornyi on 04.10.2016.
@@ -56,7 +53,7 @@ public class AddEditTaskActivity extends AppCompatActivity {
         // Create the presenter
         new AddEditTaskPresenter(
                 taskId,
-                Injection.provideTasksRepository(getApplicationContext()),
+                TasksRepository.getInstance(getApplicationContext()),
                 addEditTaskFragment);
     }
 
@@ -66,8 +63,4 @@ public class AddEditTaskActivity extends AppCompatActivity {
         return true;
     }
 
-    @VisibleForTesting
-    public IdlingResource getCountingIdlingResource() {
-        return EspressoIdlingResource.getIdlingResource();
-    }
 }

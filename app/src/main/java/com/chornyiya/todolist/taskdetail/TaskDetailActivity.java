@@ -5,8 +5,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import com.chornyiya.todolist.Injection;
 import com.chornyiya.todolist.R;
+import com.chornyiya.todolist.data.source.TasksRepository;
+import com.chornyiya.todolist.data.source.local.TasksLocalDataSource;
+import com.chornyiya.todolist.data.source.remote.TasksRemoteDataSource;
 import com.chornyiya.todolist.util.ActivityUtils;
 
 /**
@@ -46,7 +48,7 @@ public class TaskDetailActivity extends AppCompatActivity {
         // Create the presenter
         new TaskDetailPresenter(
                 taskId,
-                Injection.provideTasksRepository(getApplicationContext()),
+                TasksRepository.getInstance(getApplicationContext()),
                 taskDetailFragment);
     }
 
