@@ -3,6 +3,7 @@ package com.chornyiya.todolist.data;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 
@@ -14,29 +15,29 @@ import java.util.UUID;
 
 public final class Task {
 
-    @NonNull
+
     private String id;
-    @Nullable
+
     private String title;
-    @Nullable
+
     private String description;
 
     private String key;
     private boolean completed;
 
-    public Task(@Nullable String title, @Nullable String description) {
+    public Task(String title, String description) {
         this(title, description, UUID.randomUUID().toString(), false);
     }
 
-    public Task(@Nullable String title, @Nullable String description, boolean completed) {
+    public Task(String title,  String description, boolean completed) {
         this(title, description, UUID.randomUUID().toString(), completed);
     }
 
-    public Task(@Nullable String title, @Nullable String description, @NonNull String id) {
+    public Task(String title, String description,String id) {
         this(title, description, id, false);
     }
 
-    public Task(@Nullable String title, @Nullable String description, @NonNull String id, boolean completed) {
+    public Task(String title, String description, String id, boolean completed) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -53,17 +54,17 @@ public final class Task {
         this.key = key;
     }
 
-    @NonNull
+
     public String getId() {
         return id;
     }
 
-    @Nullable
+
     public String getTitle() {
         return title;
     }
 
-    @Nullable
+    @JsonIgnore
     public String titleForList() {
         if (!Strings.isNullOrEmpty(title)) {
             return title;
@@ -72,7 +73,7 @@ public final class Task {
         }
     }
 
-    @Nullable
+
     public String getDescription() {
         return description;
     }
@@ -81,15 +82,16 @@ public final class Task {
         return completed;
     }
 
+    @JsonIgnore
     public boolean active() {
         return !completed;
     }
-
+    @JsonIgnore
     public boolean empty() {
         return Strings.isNullOrEmpty(title) &&
                 Strings.isNullOrEmpty(description);
     }
-
+    @JsonIgnore
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -99,12 +101,12 @@ public final class Task {
                 Objects.equal(title, task.title) &&
                 Objects.equal(description, task.description);
     }
-
+    @JsonIgnore
     @Override
     public int hashCode() {
         return Objects.hashCode(id, title, description);
     }
-
+    @JsonIgnore
     @Override
     public String toString() {
         return "Task with title: " + title;

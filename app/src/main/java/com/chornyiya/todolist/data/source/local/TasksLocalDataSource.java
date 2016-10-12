@@ -46,7 +46,8 @@ public class TasksLocalDataSource implements TasksDataSource {
                 TaskEntry.COLUMN_NAME_ENTRY_ID,
                 TaskEntry.COLUMN_NAME_TITLE,
                 TaskEntry.COLUMN_NAME_DESCRIPTION,
-                TaskEntry.COLUMN_NAME_COMPLETED
+                TaskEntry.COLUMN_NAME_COMPLETED,
+                TaskEntry.COLUMN_NAME_KEY
         };
 
         Cursor c = db.query(TaskEntry.TABLE_NAME, projection, null, null, null, null, null);
@@ -54,12 +55,14 @@ public class TasksLocalDataSource implements TasksDataSource {
             while (c.moveToNext()) {
                 String itemId = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_ENTRY_ID));
                 String title = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_TITLE));
+                String key = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_KEY));
                 String description =
                         c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_DESCRIPTION));
                 boolean completed =
                         c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_COMPLETED)) == 1;
                 Task task = new Task(title, description, itemId, completed);
                 tasks.add(task);
+                task.setKey(key);
             }
         }
         if (c != null) {
@@ -84,7 +87,8 @@ public class TasksLocalDataSource implements TasksDataSource {
                 TaskEntry.COLUMN_NAME_ENTRY_ID,
                 TaskEntry.COLUMN_NAME_TITLE,
                 TaskEntry.COLUMN_NAME_DESCRIPTION,
-                TaskEntry.COLUMN_NAME_COMPLETED
+                TaskEntry.COLUMN_NAME_COMPLETED,
+                TaskEntry.COLUMN_NAME_KEY
         };
 
         String selection = TaskEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
@@ -99,11 +103,13 @@ public class TasksLocalDataSource implements TasksDataSource {
             c.moveToFirst();
             String itemId = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_ENTRY_ID));
             String title = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_TITLE));
+            String key = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_KEY));
             String description =
                     c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_DESCRIPTION));
             boolean completed =
                     c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_COMPLETED)) == 1;
             task = new Task(title, description, itemId, completed);
+            task.setKey(key);
         }
         if (c != null) {
             c.close();
@@ -127,6 +133,7 @@ public class TasksLocalDataSource implements TasksDataSource {
         values.put(TaskEntry.COLUMN_NAME_TITLE, task.getTitle());
         values.put(TaskEntry.COLUMN_NAME_DESCRIPTION, task.getDescription());
         values.put(TaskEntry.COLUMN_NAME_COMPLETED, task.isCompleted());
+        values.put(TaskEntry.COLUMN_NAME_KEY, task.getKey());
 
         db.insert(TaskEntry.TABLE_NAME, null, values);
         db.close();

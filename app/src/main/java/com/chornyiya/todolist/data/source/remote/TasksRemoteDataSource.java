@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static android.content.ContentValues.TAG;
+
 /**
  * Created by y.chornyi on 30.09.2016.
  */
@@ -45,6 +47,7 @@ public class TasksRemoteDataSource implements TasksDataSource {
                 cacheTasks.clear();
                 for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
                     Task post = postSnapshot.getValue(Task.class);
+                    post.setKey(postSnapshot.getKey());
                     cacheTasks.put(post.getId(),post);
                 }
             }
@@ -58,9 +61,9 @@ public class TasksRemoteDataSource implements TasksDataSource {
 
     private static void addTask(String title, String description) {
         Task newTask = new Task(title, description);
-        newTask.setKey(mFirebaseDatabaseReference.push().getKey());
-        mFirebaseDatabaseReference.child(newTask.getKey()).setValue(newTask);
-
+        Map<String, Task> updateTask = new HashMap<String, Task>();
+        updateTask.put(newTask.getId(),newTask);
+        mFirebaseDatabaseReference.setValue(updateTask);
     }
 
     @Override
@@ -74,9 +77,10 @@ public class TasksRemoteDataSource implements TasksDataSource {
 
                 for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
                     Task post = postSnapshot.getValue(Task.class);
+                    post.setKey(postSnapshot.getKey());
                     tasks.add(post);
                     cacheTasks.put(post.getId(),post);
-                    Log.d("TAG", "Value is: " + post.getDescription() + " - " + post.getTitle());
+                    Log.d("TAG", "Value is: "+post.getId()+" -- " + post.getDescription() + " - " + post.getTitle());
                 }
                 callback.onTasksLoaded(tasks);
             }
@@ -105,25 +109,25 @@ public class TasksRemoteDataSource implements TasksDataSource {
 
     @Override
     public void saveTask(@NonNull Task task) {
-        task.setKey(mFirebaseDatabaseReference.push().getKey());
-        mFirebaseDatabaseReference.child(task.getKey()).setValue(task);
+        String key = mFirebaseDatabaseReference.push().getKey();
+        task.setKey(key);
+        Log.d(TAG, "saveTask: "+key);
+        mFirebaseDatabaseReference.child(key).setValue(task);
+
+//        Map<String, Object> updateTask = new HashMap<String, Object>();
+//        updateTask.put(task.getId(),task);
+//        mFirebaseDatabaseReference.updateChildren(updateTask);
     }
 
     @Override
     public void completeTask(@NonNull Task task) {
+        Log.d("TAG", "completeTask: "+task.getId());
         mFirebaseDatabaseReference.child(task.getKey()).child("completed").setValue(true);
     }
 
     @Override
     public void completeTask(@NonNull String taskId) {
-        Iterator<Map.Entry<String, Task>> entries = cacheTasks.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<String, Task> entry = entries.next();
-            if(entry.getValue().getId().equals(taskId)){
-                completeTask(entry.getValue());
-                return;
-            }
-        }
+        completeTask(cacheTasks.get(taskId));
     }
 
     @Override
@@ -133,14 +137,7 @@ public class TasksRemoteDataSource implements TasksDataSource {
 
     @Override
     public void activateTask(@NonNull String taskId) {
-        Iterator<Map.Entry<String, Task>> entries = cacheTasks.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<String, Task> entry = entries.next();
-            if(entry.getValue().getId().equals(taskId)){
-                activateTask(entry.getValue());
-                return;
-            }
-        }
+        activateTask(cacheTasks.get(taskId));
     }
 
     @Override
@@ -149,7 +146,7 @@ public class TasksRemoteDataSource implements TasksDataSource {
         while (entries.hasNext()) {
             Map.Entry<String, Task> entry = entries.next();
             if(entry.getValue().isCompleted()){
-                mFirebaseDatabaseReference.child(entry.getKey()).removeValue();
+                mFirebaseDatabaseReference.child(entry.getValue().getKey()).removeValue();
             }
         }
     }
