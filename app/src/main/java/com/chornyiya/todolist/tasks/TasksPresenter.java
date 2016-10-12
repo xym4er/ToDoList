@@ -69,7 +69,7 @@ public class TasksPresenter implements TasksContract.Presenter {
                             tasksToShow.add(task);
                             break;
                         case ACTIVE_TASKS:
-                            if (task.isActive()) {
+                            if (task.active()) {
                                 tasksToShow.add(task);
                             }
                             break;

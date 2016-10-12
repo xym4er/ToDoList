@@ -385,7 +385,7 @@ public class TasksFragment extends Fragment implements TasksContract.View {
             final Task task = getItem(i);
 
             TextView titleTV = (TextView) rowView.findViewById(R.id.title);
-            titleTV.setText(task.getTitleForList());
+            titleTV.setText(task.titleForList());
 
             CheckBox completeCB = (CheckBox) rowView.findViewById(R.id.complete);
 

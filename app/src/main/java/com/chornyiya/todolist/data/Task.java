@@ -15,12 +15,14 @@ import java.util.UUID;
 public final class Task {
 
     @NonNull
-    private final String id;
+    private String id;
     @Nullable
-    private final String title;
+    private String title;
     @Nullable
-    private final String description;
-    private final boolean completed;
+    private String description;
+
+    private String key;
+    private boolean completed;
 
     public Task(@Nullable String title, @Nullable String description) {
         this(title, description, UUID.randomUUID().toString(), false);
@@ -41,6 +43,16 @@ public final class Task {
         this.completed = completed;
     }
 
+    public Task(){}
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
     @NonNull
     public String getId() {
         return id;
@@ -52,7 +64,7 @@ public final class Task {
     }
 
     @Nullable
-    public String getTitleForList() {
+    public String titleForList() {
         if (!Strings.isNullOrEmpty(title)) {
             return title;
         } else {
@@ -69,11 +81,11 @@ public final class Task {
         return completed;
     }
 
-    public boolean isActive() {
+    public boolean active() {
         return !completed;
     }
 
-    public boolean isEmpty() {
+    public boolean empty() {
         return Strings.isNullOrEmpty(title) &&
                 Strings.isNullOrEmpty(description);
     }

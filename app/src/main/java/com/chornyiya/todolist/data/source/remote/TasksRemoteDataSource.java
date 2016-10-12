@@ -1,14 +1,20 @@
 package com.chornyiya.todolist.data.source.remote;
 
-import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.chornyiya.todolist.data.Task;
 import com.chornyiya.todolist.data.source.TasksDataSource;
-import com.google.common.collect.Lists;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,15 +25,9 @@ public class TasksRemoteDataSource implements TasksDataSource {
 
     private static TasksRemoteDataSource INSTANCE;
 
-    private static final int SERVICE_LATENCY_IN_MILLIS = 5000;
+    private static Map<String, Task> cacheTasks = new HashMap<>();
 
-    private final static Map<String, Task> TASKS_SERVICE_DATA;
-
-    static {
-        TASKS_SERVICE_DATA = new LinkedHashMap<>(2);
-        addTask("Build tower in Pisa", "Ground looks good, no foundation work required.");
-        addTask("Finish bridge in Tacoma", "Found awesome girders at half the cost!");
-    }
+    private static DatabaseReference mFirebaseDatabaseReference;
 
     public static TasksRemoteDataSource getInstance() {
         if (INSTANCE == null) {
@@ -37,90 +37,159 @@ public class TasksRemoteDataSource implements TasksDataSource {
     }
 
     // Prevent direct instantiation.
-    private TasksRemoteDataSource() {}
+    private TasksRemoteDataSource() {
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("todo");
+        mFirebaseDatabaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                cacheTasks.clear();
+                for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+                    Task post = postSnapshot.getValue(Task.class);
+                    cacheTasks.put(post.getId(),post);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
 
     private static void addTask(String title, String description) {
         Task newTask = new Task(title, description);
-        TASKS_SERVICE_DATA.put(newTask.getId(), newTask);
+        newTask.setKey(mFirebaseDatabaseReference.push().getKey());
+        mFirebaseDatabaseReference.child(newTask.getKey()).setValue(newTask);
+
     }
 
     @Override
     public void getTasks(final @NonNull LoadTasksCallback callback) {
-        // Simulate network by delaying the execution.
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void run() {
-                callback.onTasksLoaded(Lists.newArrayList(TASKS_SERVICE_DATA.values()));
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("TAG", "Value is: " + dataSnapshot.getChildrenCount());
+                List<Task> tasks = new ArrayList<Task>();
+                cacheTasks.clear();
+
+                for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+                    Task post = postSnapshot.getValue(Task.class);
+                    tasks.add(post);
+                    cacheTasks.put(post.getId(),post);
+                    Log.d("TAG", "Value is: " + post.getDescription() + " - " + post.getTitle());
+                }
+                callback.onTasksLoaded(tasks);
             }
-        }, SERVICE_LATENCY_IN_MILLIS);
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.onDataNotAvailable();
+            }
+        });
     }
 
     @Override
-    public void getTask(@NonNull String taskId, @NonNull final GetTaskCallback callback) {
-        final Task task = TASKS_SERVICE_DATA.get(taskId);
-
-        // Simulate network by delaying the execution.
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+    public void getTask(@NonNull final String taskId, @NonNull final GetTaskCallback callback) {
+        getTasks(new LoadTasksCallback() {
             @Override
-            public void run() {
-                callback.onTaskLoaded(task);
+            public void onTasksLoaded(List<Task> tasks) {
+                callback.onTaskLoaded(cacheTasks.get(taskId));
             }
-        }, SERVICE_LATENCY_IN_MILLIS);
+
+            @Override
+            public void onDataNotAvailable() {
+                callback.onDataNotAvailable();
+            }
+        });
     }
 
     @Override
     public void saveTask(@NonNull Task task) {
-        TASKS_SERVICE_DATA.put(task.getId(), task);
-        //TODO: save data to firebase
+        task.setKey(mFirebaseDatabaseReference.push().getKey());
+        mFirebaseDatabaseReference.child(task.getKey()).setValue(task);
     }
 
     @Override
     public void completeTask(@NonNull Task task) {
-        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true);
-        TASKS_SERVICE_DATA.put(task.getId(), completedTask);
+        mFirebaseDatabaseReference.child(task.getKey()).child("completed").setValue(true);
     }
 
     @Override
     public void completeTask(@NonNull String taskId) {
-
+        Iterator<Map.Entry<String, Task>> entries = cacheTasks.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, Task> entry = entries.next();
+            if(entry.getValue().getId().equals(taskId)){
+                completeTask(entry.getValue());
+                return;
+            }
+        }
     }
 
     @Override
     public void activateTask(@NonNull Task task) {
-        Task activeTask = new Task(task.getTitle(), task.getDescription(), task.getId());
-        TASKS_SERVICE_DATA.put(task.getId(), activeTask);
+        mFirebaseDatabaseReference.child(task.getKey()).child("completed").setValue(false);
     }
 
     @Override
     public void activateTask(@NonNull String taskId) {
-
+        Iterator<Map.Entry<String, Task>> entries = cacheTasks.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, Task> entry = entries.next();
+            if(entry.getValue().getId().equals(taskId)){
+                activateTask(entry.getValue());
+                return;
+            }
+        }
     }
 
     @Override
     public void clearCompletedTasks() {
-        Iterator<Map.Entry<String, Task>> it = TASKS_SERVICE_DATA.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, Task> entry = it.next();
-            if (entry.getValue().isCompleted()) {
-                it.remove();
+        Iterator<Map.Entry<String, Task>> entries = cacheTasks.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, Task> entry = entries.next();
+            if(entry.getValue().isCompleted()){
+                mFirebaseDatabaseReference.child(entry.getKey()).removeValue();
             }
         }
     }
 
     @Override
     public void refreshTasks() {
+        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("TAG", "Value is: " + dataSnapshot.getChildrenCount());
+                cacheTasks.clear();
+                for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+                    Task post = postSnapshot.getValue(Task.class);
+                    cacheTasks.put(post.getId(),post);
+                    Log.d("TAG", "Value is: " + post.getDescription() + " - " + post.getTitle());
+                }
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 
     @Override
     public void deleteAllTasks() {
-        TASKS_SERVICE_DATA.clear();
+        cacheTasks.clear();
+        mFirebaseDatabaseReference.removeValue();
     }
 
     @Override
     public void deleteTask(@NonNull String taskId) {
-        TASKS_SERVICE_DATA.remove(taskId);
+        Iterator<Map.Entry<String, Task>> entries = cacheTasks.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, Task> entry = entries.next();
+            if(entry.getValue().getId().equals(taskId)){
+                mFirebaseDatabaseReference.child(entry.getKey()).removeValue();
+                return;
+            }
+        }
+
     }
 }
